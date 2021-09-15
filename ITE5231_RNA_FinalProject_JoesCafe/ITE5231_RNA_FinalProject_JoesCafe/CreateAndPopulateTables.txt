@@ -1,0 +1,115 @@
+﻿Drop Table OrderItems;
+Drop Table OrderItemAddons
+Drop Table Orders;
+Drop Table ProductAddons;
+Drop Table Addons;
+Drop Table Products;
+Drop Table Logins;
+Drop Table Users;
+
+Create Table Users (
+  id INT PRIMARY KEY IDENTITY (2130, 1),
+  username varchar(255) unique not null,
+  first_name varchar(255) not null,
+  last_name varchar(255) not null,
+  email varchar(255) not null,
+  mobile varchar(20) not null,
+  role varchar(10) not null -- "Admin", "Chef", "Customer"
+);
+insert into Users (username, first_name, last_name, email, mobile, role) values ('ved', 'Ved', 'Chandurkar', 'ved@gmail.com', '416-229-4537', 'Customer');
+insert into Users (username, first_name, last_name, email, mobile, role) values ('oreoluwa', 'Oreoluwa', 'Laval', 'oreoluwa@gmail.com', '647-556-3879', 'Customer');
+insert into Users (username, first_name, last_name, email, mobile, role) values ('joe', 'Joe', 'Charming', 'joe@gmail.com', '536-312-3657', 'Chef');
+insert into Users (username, first_name, last_name, email, mobile, role) values ('sachin', 'Sachin', 'Tendulkar', 'sachin@gmail.com', '489-512-4589', 'Customer');
+
+Create Table Logins (
+  user_id INT not null,
+  password varchar(255),
+  FOREIGN KEY (user_id) references Users(id),
+);
+insert into Logins (user_id, password) values (2130, 'ved');
+insert into Logins (user_id, password) values (2131, 'oreo');
+insert into Logins (user_id, password) values (2132, 'joe');
+insert into Logins (user_id, password) values (2133, 'sachin');
+
+
+Create Table Products (
+  id INT PRIMARY KEY IDENTITY (2000, 1),
+  name varchar(255) not null,
+  description varchar(255) not null,
+  price decimal(8,2),
+  imagetype varchar(20),
+  product_image varbinary(max) not null
+);
+insert into Products (name, description, price, imagetype, product_image) Select 'CAFFÈ LATTE', 'A tall, mild milk coffee (about 150-300 ml). An espresso with steamed milk.', 3.99, 'png', BulkColumn FROM OPENROWSET(BULK N'C:\ProductImages\CAFFE LATTE.png', SINGLE_BLOB) Image
+insert into Products (name, description, price, imagetype, product_image) Select 'AFFOGATO', 'Espresso poured on a vanilla ice cream. Served in a cappuccino cup.', 4.99, 'png', BulkColumn FROM OPENROWSET(BULK N'C:\ProductImages\AFFOGATO.png', SINGLE_BLOB) Image;
+insert into Products (name, description, price, imagetype, product_image) Select 'AMERICANO ', 'Espresso with added hot water (100–150 ml). Often served in a cappuccino cup. ', 4.50, 'png', BulkColumn FROM OPENROWSET(BULK N'C:\ProductImages\AMERICANO.png', SINGLE_BLOB) Image;
+insert into Products (name, description, price, imagetype, product_image) Select 'CAFFÈ MOCHA', 'A tall, mild milk coffee. An espresso with steamed milk and only a little milk foam poured over it.', 3.59, 'png', BulkColumn FROM OPENROWSET(BULK N'C:\ProductImages\CAFFE MOCHA.png', SINGLE_BLOB) Image;
+insert into Products (name, description, price, imagetype, product_image) Select 'CAPPUCCINO', 'A coffee drink consisting of espresso and a milk foam mixture (drink size about 160–240 ml).', 3.75, 'png', BulkColumn FROM OPENROWSET(BULK N'C:\ProductImages\CAPPUCCINO.png', SINGLE_BLOB) Image;
+
+Create Table Addons (
+  id INT PRIMARY KEY IDENTITY (3000, 1),
+  name varchar(255) not null,
+  description varchar(255) not null,
+  price decimal(10,2),
+);
+insert into Addons (name, description, price) values ('Cream', 'Milk Cream', 0.89);
+insert into Addons (name, description, price) values ('Butter', 'Butter', 0.90);
+insert into Addons (name, description, price) values ('Honey', 'Honey', 0.91);
+insert into Addons (name, description, price) values ('Cardamom', 'Cardamom', 0.51);
+insert into Addons (name, description, price) values ('Vanilla Extract', 'Vanilla Extract', 0.92);
+insert into Addons (name, description, price) values ('Lemon or Lime', 'Lemon or Lime', 0.52);
+insert into Addons (name, description, price) values ('Coconut Milk', 'Coconut Milk', 0.93);
+insert into Addons (name, description, price) values ('Melted chocolate', 'Melted chocolate', 0.94);
+
+Create Table ProductAddons ( -- Many to Many relationship
+  product_id INT not null,
+  addon_id INT not null,
+  FOREIGN KEY (product_id) references Products(id),
+  FOREIGN KEY (addon_id) references Addons(id),
+  PRIMARY KEY (product_id, addon_id)
+);
+insert into ProductAddons (product_id, addon_id) values (2000, 3000);
+insert into ProductAddons (product_id, addon_id) values (2000, 3001);
+insert into ProductAddons (product_id, addon_id) values (2001, 3002);
+insert into ProductAddons (product_id, addon_id) values (2001, 3003);
+insert into ProductAddons (product_id, addon_id) values (2002, 3004);
+insert into ProductAddons (product_id, addon_id) values (2002, 3005);
+insert into ProductAddons (product_id, addon_id) values (2003, 3006);
+insert into ProductAddons (product_id, addon_id) values (2003, 3007);
+insert into ProductAddons (product_id, addon_id) values (2004, 3001);
+insert into ProductAddons (product_id, addon_id) values (2004, 3003);
+
+Create Table Orders (
+  id INT PRIMARY KEY IDENTITY (5000, 1),
+  user_id INT not null,
+  order_date date not null,
+  delivery_date date,
+  order_amount decimal(10,2),
+  FOREIGN KEY (user_id) references Users(id),
+);
+insert into Orders (user_id, order_date, delivery_date, order_amount) values (2130, '2021-07-30', NULL, 4.88);
+
+Create Table OrderItems (
+  order_id INT not null,
+  product_id INT not null,
+  unit_price decimal(10,2) not null,
+  qty int not null,
+  FOREIGN KEY (order_id) references Orders(id),
+  FOREIGN KEY (product_id) references Products(id),
+  PRIMARY KEY (order_id, product_id)
+);
+insert into OrderItems (order_id, product_id, unit_price, qty) values (5000, 2000, 3.99, 1);
+
+Create Table OrderItemAddons (
+  order_id INT not null,
+  product_id INT not null,
+  addon_id INT not null,
+  unit_price decimal(10,2) not null,
+  qty int not null,
+  FOREIGN KEY (order_id) references Orders(id),
+  FOREIGN KEY (product_id, addon_id) references ProductAddons(product_id, addon_id),
+  FOREIGN KEY (addon_id) references Addons(id),
+  PRIMARY KEY (order_id, product_id, addon_id)
+);
+insert into OrderItemAddons (order_id, product_id, addon_id, unit_price, qty) values (5000, 2000, 3000, 0.89, 1);
+
